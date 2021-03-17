@@ -1,7 +1,7 @@
 version: "3.7"
 
 services:
-  cron:
+  swarm-cronjob:
     image: crazymax/swarm-cronjob
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
