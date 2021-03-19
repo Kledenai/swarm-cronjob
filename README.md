@@ -19,8 +19,10 @@
     - [Join Nodes](#join-nodes)
   - [Clone the repository](#clone-the-repository)
   - [Swarm Cron](#file-structure)
+    - [Environment](#environment)
     - [Volume](#volume)
     - [Labels](#labels)
+    - [Running Cron](#running-cron)
     - [Test](#test)
 - [Useful Links](#useful-links)
 
@@ -188,3 +190,103 @@ Clone the repository for your main machine.
 ```bash
 git clone https://github.com/Kledenai/swarm-cronjob.git
 ```
+
+
+### Swarm Cronjob
+
+**swarm-cronjob** creates jobs on a time-based schedule on [Swarm](https://docs.docker.com/engine/swarm/) with a dedicated service in a distributed manner that configures itself automatically and dynamically through [labels](https://docs.docker.com/engine/reference/commandline/service_create/#set-metadata-on-a-service--l---label) and Docker API.
+
+#### Environment
+
+The environment variables of the swarm cronjob are important to determine the timezone and the way your logs will be stored
+
+- ```TZ```: this variable is responsible for the timezone that cron will follow
+
+- ```LOG_LEVEL```: this variable will determine which type of log will be highlighted
+
+- ```LOG_JSON```: this variable will determine whether the log will come in json format or not
+
+below is an example of what it would look like in the ```cron.yml``` file
+
+```text
+environment:
+  - "TZ=GMT-5"
+  - "LOG_LEVEL=info"
+  - "LOG_JSON=false"
+```
+
+#### Volumes
+
+in the ```cron.yml``` file there is a configuration that is the most important for the swarm cronjob to work, this is the volume setting that must be referencing a file from outside the docker container called ```docker.sock``` to inside the docker container.
+
+This type of volume mapping is of the bind type, and only with it is it possible to do the mapping from outside to inside the docker container.
+
+By default you will find this file in the path ```/var/run/docker.sock```
+
+In the cron.yml file the volume must be configured in the same way as shown below
+
+```text
+volumes:
+  - "/var/run/docker.sock:/var/run/docker.sock"
+```
+
+---
+
+**Note:** the ```docker.sock``` file is responsible for the docker daemon to work, so because of it that the internal docker api works
+
+---
+
+#### Labels
+
+You can configure your service using swarm-cronjob through Docker labels, below are all the options that the cronjob swarm accepts.
+
+- ```swarm.cronjob.enable```: Set to true to enable the cronjob. required
+- ```swarm.cronjob.schedule```: [CRON expression format](https://godoc.org/github.com/robfig/cron#hdr-CRON_Expression_Format) to use. required
+- ```swarm.cronjob.skip-running```: Do not start a job if the service is currently running.
+- ```swarm.cronjob.replicas```: Number of replicas to set on schedule in replicated mode.
+- ```swarm.cronjob.registry-auth```: Send registry authentication details to Swarm agents.
+
+Below is an example of how it is used in the file that your service will use, remembering that these labels are not configured in ```cron.yml```:
+
+```text
+deploy:
+  labels:
+    - "swarm.cronjob.enable=true"
+    - "swarm.cronjob.schedule=* * * * *"
+    - "swarm.cronjob.skip-running=false"
+```
+
+the way it is configured in this example above the cron will always run every 1 minute.
+
+#### Running Cron
+
+Now we will run cron, your cluster must already be formed for cron to run, below is the command that will be used to start the service.
+
+```bash
+docker stack deploy -c cron.yml cron
+```
+
+this will start the cron service on the node with the **role manager**, running all right without any error we can do a test to view the cron in action.
+
+#### Test
+
+Now we are going to do a little test, the service we are going to run is a ```busybox``` that will only execute a command every 1 minute.
+
+```bash
+docker stack deploy -c test.yml test
+```
+
+This would be expected:
+
+```logs
+test_busybox.1.pv8uk3fppas4@node    | Fri Mar 19 18:08:33 UTC 2021
+test_busybox.1.jsapn0amzjij@node    | Fri Mar 19 18:09:33 UTC 2021
+test_busybox.1.4elkapavbo6h@node    | Fri Mar 19 18:10:33 UTC 2021
+```
+
+With all this working correctly you will be able to make your cronjobs, and any questions, if an error occurs create an issue, I will be happy to help you. ✨
+
+## Useful Links
+
+- **[Swarm Cronjob](https://crazymax.dev/swarm-cronjob/)**
+- **[Swarm Documentation](https://docs.docker.com/engine/swarm/)**
