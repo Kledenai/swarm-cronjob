@@ -1,5 +1,5 @@
 
-<p align="center"><a href="https://crazy-max.github.io/swarm-cronjob/" target="_blank"><img height="128" src="./docs/swarm-cronjob.png"></a></p
+<p align="center"><a href="https://crazy-max.github.io/swarm-cronjob/" target="_blank"><img height="128" src="./docs/swarm-cronjob.png"></a></p>
 
 <p>
   <h3 align="center">Swarm Cronjob</h3>
@@ -18,7 +18,7 @@
     - [Init swarm](#init-swarm)
     - [Join Nodes](#join-nodes)
   - [Clone the repository](#clone-the-repository)
-  - [Swarm Cron](#file-structure)
+  - [Swarm Cron](#swarm-cron)
     - [Environment](#environment)
     - [Volume](#volume)
     - [Labels](#labels)
